@@ -11,10 +11,6 @@ interface FormData {
   type: Type;
 }
 
-
-//TO DO: Añadir el resto de categorias en enum / componetizar e implementar el hook de api para hacer la peticion al back / añadir estilos
-//Añadir el api key de la peticion a unas . env para que no quede expuesto
-
 const BillForm: React.FC = () => {
   const [formData, setFormData] = useState<FormData>({
     company: "",
@@ -33,7 +29,23 @@ const BillForm: React.FC = () => {
     const { name, value } = e.target;
     setFormData({
       ...formData,
-      [name]: value as Category | Type | string
+      [name]: value,
+    });
+  };
+
+  const handleCategoryChange = (e: SelectChangeEvent<Category>) => {
+    const { value } = e.target;
+    setFormData({
+      ...formData,
+      category: value as Category,
+    });
+  };
+
+  const handleTypeChange = (e: SelectChangeEvent<Type>) => {
+    const { value } = e.target;
+    setFormData({
+      ...formData,
+      type: value as Type,
     });
   };
 
@@ -122,103 +134,178 @@ const BillForm: React.FC = () => {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="form-container">
-      <div className="form-group">
-        <TextField
-          label="Compañía"
-          name="company"
-          value={formData.company}
-          onChange={handleChange}
-          variant="outlined"
-          fullWidth
-          sx={{ m: 1 }}
-        />
-      </div>
-      <FormControl fullWidth sx={{ m: 1 }}>
-        <InputLabel htmlFor="outlined-adornment-amount">Amount</InputLabel>
-        <OutlinedInput
-          id="outlined-adornment-amount"
-          name="amount"
-          value={formData.amount}
-          onChange={handleChange}
-          startAdornment={<InputAdornment position="start">$</InputAdornment>}
-          label="Amount"
-        />
-      </FormControl>
-      <div className="form-group">
-        <TextField
-          label="Fecha y Hora"
-          type="datetime-local"
-          name="date"
-          value={formData.date}
-          onChange={handleChange}
-          variant="outlined"
-          fullWidth
-          sx={{ m: 1 }}
-          InputLabelProps={{
-            shrink: true,
-          }}
-        />
-      </div>
-      <div className="form-group">
+    <div style={{ position: "relative", minHeight: "100vh", width: "100%", display: "flex", justifyContent: "center", alignItems: "center" }}>
+      <form onSubmit={handleSubmit} className="form-container">
+        <h2 style={{ 
+          color: "#FFFFFF", 
+          textAlign: "center", 
+          fontFamily: "'Varela Round', sans-serif", // Aplicar la fuente
+          fontSize: "24px", // Tamaño de la fuente
+          marginBottom: "20px" // Espacio inferior
+        }}>
+          Gastos e Ingresos
+        </h2>
+        <div className="form-group">
+          <TextField
+            label="Compañía"
+            name="company"
+            value={formData.company}
+            onChange={handleChange}
+            variant="outlined"
+            fullWidth
+            sx={{ 
+              m: 1, 
+              backgroundColor: '#ffffff', 
+              borderRadius: '4px',
+              '& .MuiOutlinedInput-root': {
+                '& fieldset': {
+                  borderColor: '#4E207C',
+                },
+                '&:hover fieldset': {
+                  borderColor: '#C68FF5',
+                },
+              },
+            }}
+          />
+        </div>
         <FormControl fullWidth sx={{ m: 1 }}>
-          <InputLabel id="category-select-label">Categoría</InputLabel>
-          <Select
-            labelId="category-select-label"
-            id="category-select"
-            name="category"
-            value={formData.category}
-            onChange={handleCategoryChange}
-            label="Categoría"
-          >
-            {Object.values(Category).map((category) => (
-              <MenuItem key={category} value={category}>
-                {category}
-              </MenuItem>
-            ))}
-          </Select>
+          <InputLabel htmlFor="outlined-adornment-amount">Monto</InputLabel>
+          <OutlinedInput
+            id="outlined-adornment-amount"
+            name="amount"
+            value={formData.amount}
+            onChange={handleChange}
+            startAdornment={<InputAdornment position="start">$</InputAdornment>}
+            label="Monto"
+            sx={{
+              backgroundColor: '#ffffff',
+              borderRadius: '4px',
+              '& .MuiOutlinedInput-root': {
+                '& fieldset': {
+                  borderColor: '#4E207C',
+                },
+                '&:hover fieldset': {
+                  borderColor: '#C68FF5',
+                },
+              },
+            }}
+          />
         </FormControl>
-      </div>
-      <div className="form-group">
-        <FormControl fullWidth sx={{ m: 1 }}>
-          <InputLabel id="type-select-label">Tipo</InputLabel>
-          <Select
-            labelId="type-select-label"
-            id="type-select"
-            name="type"
-            value={formData.type}
-            onChange={handleTypeChange}
-            label="Tipo"
-          >
-            {Object.values(Type).map((type) => (
-              <MenuItem key={type} value={type}>
-                {type}
-              </MenuItem>
-            ))}
-          </Select>
-        </FormControl>
-      </div>
-      <div className="button-group">
-        <button type="button" onClick={handleScanWithAI} className="form-button scan-button" disabled={loading}>
-          {loading ? "Escaneando..." : "Escanear con IA"}
-        </button>
-        <input
-          type="file"
-          accept="image/*"
-          onChange={handleImageChange}
-          className="form-input file-input"
-          id="file-input"
-        />
-        <label htmlFor="file-input" className="form-button file-label">
-          Seleccionar archivo
-        </label>
-      </div>
-      <div className="submit-button-container">
-        <button type="submit" className="form-button submit-button">
-          Enviar
-        </button>
-      </div>
-    </form>
+        <div className="form-group">
+          <TextField
+            label="Fecha y Hora"
+            type="datetime-local"
+            name="date"
+            value={formData.date}
+            onChange={handleChange}
+            variant="filled"
+            fullWidth
+            sx={{ 
+              m: 1, 
+              backgroundColor: '#ffffff', 
+              borderRadius: '4px',
+              '& .MuiOutlinedInput-root': {
+                '& fieldset': {
+                  borderColor: '#4E207C',
+                },
+                '&:hover fieldset': {
+                  borderColor: '#C68FF5',
+                },
+              },
+            }}
+            InputLabelProps={{
+              shrink: true,
+            }}
+          />
+        </div>
+        <div className="form-group">
+          <FormControl fullWidth sx={{ m: 1 }}>
+            <InputLabel id="category-select-label">Categoría de Gasto</InputLabel>
+            <Select
+              labelId="category-select-label"
+              id="category-select"
+              name="category"
+              value={formData.category}
+              onChange={handleCategoryChange}
+              label="Categoría de Gasto"
+              sx={{
+                backgroundColor: '#ffffff',
+                borderRadius: '4px',
+                '& .MuiOutlinedInput-root': {
+                  '& fieldset': {
+                    borderColor: '#4E207C',
+                  },
+                  '&:hover fieldset': {
+                    borderColor: '#C68FF5',
+                  },
+                },
+              }}
+            >
+              {Object.values(Category).map((category) => (
+                <MenuItem key={category} value={category}>
+                  {category}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+        </div>
+        <div className="form-group">
+          <FormControl fullWidth sx={{ m: 1 }}>
+            <InputLabel id="type-select-label">Tipo</InputLabel>
+            <Select
+              labelId="type-select-label"
+              id="type-select"
+              name="type"
+              value={formData.type}
+              onChange={handleTypeChange}
+              label="Tipo"
+              sx={{
+                backgroundColor: '#ffffff',
+                borderRadius: '4px',
+                '& .MuiOutlinedInput-root': {
+                  '& fieldset': {
+                    borderColor: '#4E207C',
+                  },
+                  '&:hover fieldset': {
+                    borderColor: '#C68FF5',
+                  },
+                },
+              }}
+            >
+              {Object.values(Type).map((type) => (
+                <MenuItem key={type} value={type}>
+                  {type}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+        </div>
+        <div className="button-group">
+          <button type="button" onClick={handleScanWithAI} className="form-button scan-button" disabled={loading} style={{fontFamily: "'Varela Round', sans-serif", // Aplicar la fuente
+          fontSize: "15px",}}>
+            {loading ? "Escaneando..." : "Escanear Factura"}
+          </button>
+          <input
+            type="file"
+            accept="image/*"
+            onChange={handleImageChange}
+            className="form-input file-input"
+            id="file-input"
+            style={{ display: "none" }} // Ocultar el input
+          />
+          <label htmlFor="file-input" className="form-button file-label"style={{fontFamily: "'Varela Round', sans-serif", // Aplicar la fuente
+          fontSize: "15px",}}>
+            Seleccionar archivo
+          </label>
+        </div>
+        <div className="submit-button-container">
+          <button type="submit" className="form-button submit-button"style={{fontFamily: "'Varela Round', sans-serif", // Aplicar la fuente
+          fontSize: "15px",}}>
+            Agregar
+          </button>
+        </div>
+      </form>
+    </div>
   );
 };
 
