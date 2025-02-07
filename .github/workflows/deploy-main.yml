@@ -1,0 +1,72 @@
+name: Frontend CI with Node.js
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest  # Puedes ajustar a un sistema operativo de tu preferencia.
+
+    steps:
+      - name: Check out the repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22.13.1'  
+
+      - name: Install dependencies
+        run: |
+          npm install 
+
+      - name: Build the project
+        run: |
+          npm run build 
+
+      - name: Initialize SSH and Trust Host
+        run: |
+          mkdir -p ~/.ssh
+          ssh-keyscan -p ${{ secrets.SERVER_PORT }} -H ${{ secrets.SERVER_HOST }} >> ~/.ssh/known_hosts
+
+      - name: Setting up SSH
+        uses: webfactory/ssh-agent@v0.5.3
+        with:
+          ssh-private-key: ${{ secrets.SERVER_KEY }}
+
+      - name: Deploy to VPS
+        run: |
+          set -e  
+
+          DEPLOY_DIR="/var/www/ai-scanner_front/C1-registro-de-gastos-e-ingresos-frontend"  
+          LOGS_DIR="$DEPLOY_DIR/logs"
+          BUILD_DIR="build"
+
+          echo "Creando directorio de logs (si no existe)..."
+          ssh -p ${{ secrets.SERVER_PORT }} ${{ secrets.SERVER_USERNAME }}@${{ secrets.SERVER_HOST }} "mkdir -p $LOGS_DIR"
+
+          echo "Borrando la versión anterior de la aplicación (si existe)..."
+          ssh -p ${{ secrets.SERVER_PORT }} ${{ secrets.SERVER_USERNAME }}@${{ secrets.SERVER_HOST }} "rm -rf $DEPLOY_DIR/*"
+
+          echo "Copiando los archivos de la aplicación... (de la carpeta build)"
+          scp -r -P ${{ secrets.SERVER_PORT }} $BUILD_DIR/* ${{ secrets.SERVER_USERNAME }}@${{ secrets.SERVER_HOST }}:$DEPLOY_DIR/
+
+          echo "Verificando que los archivos se copiaron correctamente..."
+          ssh -p ${{ secrets.SERVER_PORT }} ${{ secrets.SERVER_USERNAME }}@${{ secrets.SERVER_HOST }} "ls -l $DEPLOY_DIR"
+
+          echo "Dando permisos de lectura y ejecución a los archivos..."
+          ssh -p ${{ secrets.SERVER_PORT }} ${{ secrets.SERVER_USERNAME }}@${{ secrets.SERVER_HOST }} "chmod -R 755 $DEPLOY_DIR"
+
+          echo "Iniciando el servidor frontend..."
+          ssh -p ${{ secrets.SERVER_PORT }} ${{ secrets.SERVER_USERNAME }}@${{ secrets.SERVER_HOST }} "\
+          nohup npx serve $DEPLOY_DIR > $LOGS_DIR/output.log 2>&1 & \
+          "
+
+          echo "Verificando que la aplicación se está ejecutando..."
+          ssh -p ${{ secrets.SERVER_PORT }} ${{ secrets.SERVER_USERNAME }}@${{ secrets.SERVER_HOST }} "pgrep -f serve"
+
+          echo "Deploy completed"
